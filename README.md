@@ -25,4 +25,4 @@ Just run the .exe (found in the \Build directory) from the command line.
 
 Reset the game with CTRL + R.
 
-The game is not yet finished, so this may not work.
+The game is not yet finished, so there may be bugs, or things not yet implemented.
