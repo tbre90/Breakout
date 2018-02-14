@@ -2,7 +2,6 @@
 #include <time.h>
 
 #include "..\Include\game.h"
-#include "..\Include\game_api.h"
 
 static struct game game;
 

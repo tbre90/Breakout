@@ -1,5 +1,19 @@
 #ifndef PLATFORM_API_H
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <direct.h>
+    #if defined(_UNICODE) || defined(UNICODE)
+    #define GET_WORKING_DIR(buffer, maxlen) _wgetcwd((buffer), (maxlen))
+    #else
+    #define GET_WORKING_DIR(buffer, maxlen) _getcwd((buffer), (maxlen))
+    #endif
+#define PATH_MAX 260
+#else
+#include <unistd.h>
+#define GET_WORKING_DIR(buffer, maxlen) getcwd((buffer), (maxlen))
+#define PATH_MAX 4096
+#endif
+
 void
 platform_request_window_dimensions(int *width, int *height);
 

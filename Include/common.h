@@ -1,5 +1,5 @@
 #ifndef COMMON_H
- 
+
 struct keyboard
 {
     int left;
