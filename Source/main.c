@@ -130,6 +130,10 @@ wWinMain(HINSTANCE h_instance,
 
     MSG msg = {0};
 
+    wchar_t working_dir[PATH_MAX] = {0};
+    GET_WORKING_DIR(working_dir, PATH_MAX);
+    MessageBoxW(NULL, working_dir, L"Info", MB_OK);
+
     LARGE_INTEGER freq          = {0};
     LARGE_INTEGER currentTicks  = {0};
     LARGE_INTEGER previousTicks = {0};
