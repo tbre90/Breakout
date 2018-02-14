@@ -1,4 +1,4 @@
-#ifndef PLATFORM_H
+#ifndef PLATFORM_API_H
 
 void
 platform_request_window_dimensions(int *width, int *height);
@@ -28,5 +28,5 @@ platform_remove_circle(int x, int y, int width, int height);
 //int
 //platform_sound(void);
 
-#define PLATFORM_H
+#define PLATFORM_API_H
 #endif
