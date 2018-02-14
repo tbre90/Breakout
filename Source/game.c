@@ -7,8 +7,17 @@ static struct game game;
 
 static int rect_intersect(struct rectangle *r1, struct rectangle *r2);
 
+static int sound_init = 0;
+
 int game_initialize(void)
 {
+    if (sound_init == 0)
+    {
+        sound_init = init_sound_system();
+        if (!sound_init)
+        { sound_init = -1; }
+    }
+
     if (!game.rng_seeded)
     {
         srand((unsigned)time(NULL));
