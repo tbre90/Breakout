@@ -1,37 +1,16 @@
 #ifndef PLATFORM_API_H
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <direct.h>
-    #if defined(_UNICODE) || defined(UNICODE)
-    #define GET_WORKING_DIR(buffer, maxlen) _wgetcwd((buffer), (maxlen))
-    #else
-    #define GET_WORKING_DIR(buffer, maxlen) _getcwd((buffer), (maxlen))
-    #endif
 #define PATH_MAX 260
 #else
-    #include <unistd.h>
-#define GET_WORKING_DIR(buffer, maxlen) getcwd((buffer), (maxlen))
 #define PATH_MAX 4096
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-#else
-    #if defined(_UNICODE) || defined(UNICODE)
-    #define FOLDER_EXISTS(folder, t_ref) \
-        do \
-        { \
-            LPWIN32_FIND_DATAW find_file; \
-            HANDLE h = FindFirstFile(L"" (folder), &find_file); \
-            if (h == INVALID_HANDLE_VALUE) { (*t_ref) = 0; } \
-            else \
-            { \
-                CloseHandle(h); \
-            }
-        } while (0)
-    #else
-    #endif
-#error "folder_exists not yet implemented for linux/unix"
-#endif
+int
+get_working_dir(char *buffer, int buff_len);
+
+int
+folder_exists(char *folder);
 
 void
 platform_request_window_dimensions(int *width, int *height);
