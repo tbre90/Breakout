@@ -54,12 +54,9 @@ extern "C"
 void
 test_sound(char const * const file)
 {
-    wchar_t wfname[PATH_MAX];
-    std::mbstowcs(wfname, file, PATH_MAX); 
-
     HANDLE sound_file =
-        CreateFileW(
-            wfname,
+        CreateFileA(
+            file,
             GENERIC_READ,
             FILE_SHARE_READ,
             NULL,

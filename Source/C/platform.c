@@ -110,10 +110,3 @@ platform_remove_circle(int x, int y, int width, int height)
 {
     return remove_rectangle(x, y, width, height);
 }
-
-
-// Need to make this more general
-// figure out which sound api to use
-//int platform_sound(void)
-//{
-//}

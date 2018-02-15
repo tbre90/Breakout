@@ -1,15 +1,14 @@
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "..\..\Include\game.h"
 
 static struct game game;
+static int         sound_init = 0;
+static char        sound_file[PATH_MAX];
 
 static int rect_intersect(struct rectangle *r1, struct rectangle *r2);
-
-static int sound_init = 0;
-
-static char *sound_file = NULL;
 
 int game_initialize(void)
 {
@@ -22,7 +21,11 @@ int game_initialize(void)
 
     if (!sound_file)
     {
-        
+        if (folder_exists("Assets"))
+        {
+            strncat(sound_file, "\\Assets\\ball-hit.wav", PATH_MAX);
+            test_sound(sound_file);
+        }
     }
 
     if (!game.rng_seeded)
