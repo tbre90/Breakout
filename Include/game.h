@@ -2,7 +2,7 @@
 
 #include "..\Include\common.h"
 #include "..\Include\platform_api.h"
-#include "..\Include\platform_sound_api.hpp"
+#include "..\Include\platform_sound_api.h"
 
 #define GET_RANDOM_COLOR(c, cutoff) \
     (c) = ((rand() % (cutoff) << 16) |\

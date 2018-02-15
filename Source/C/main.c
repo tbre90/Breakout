@@ -6,10 +6,10 @@
 #include <strsafe.h>
 #include <wchar.h>
 
-#include "..\Include\backbuffer.h"
-#include "..\Include\common.h"
-#include "..\Include\game_api.h"
-#include "..\Include\platform_api.h"
+#include "..\..\Include\backbuffer.h"
+#include "..\..\Include\common.h"
+#include "..\..\Include\game_api.h"
+#include "..\..\Include\platform_api.h"
 
 // restart game custom message
 // according to msdn:

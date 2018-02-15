@@ -1,4 +1,4 @@
-#include "..\Include\main.h"
+#include "..\..\Include\main.h"
 
 void
 platform_request_window_dimensions(int *width, int *height)

@@ -21,7 +21,7 @@
 #define fourccDPDS 'sdpd'
 #endif
 
-#include "..\Include\platform_api.h"
+#include "..\..\Include\platform_api.h"
 
 HRESULT
 find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_position);

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "..\Include\game.h"
+#include "..\..\Include\game.h"
 
 static struct game game;
 
