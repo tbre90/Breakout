@@ -1,7 +1,4 @@
-﻿#define UNICODE
-#define _UNICODE
-
-#include <windows.h>
+﻿#include <windows.h>
 #include <stdlib.h>
 #include <strsafe.h>
 #include <wchar.h>
@@ -39,10 +36,10 @@ get_backbuffer(void)
 }
 
 int WINAPI
-wWinMain(HINSTANCE h_instance,
-          HINSTANCE h_prev_instance,
-          LPWSTR cmd_line,
-          int cmd_show)
+WinMain(HINSTANCE h_instance,
+        HINSTANCE h_prev_instance,
+        LPSTR cmd_line,
+        int cmd_show)
 {
     // silence compiler about unused function parameters
     UNREFERENCED_PARAMETER(h_instance);
@@ -59,7 +56,7 @@ wWinMain(HINSTANCE h_instance,
     }
     */
 
-    wchar_t app_name[] = L"Breakout";
+    char const * const app_name = "Breakout";
 
     WNDCLASSEX wndclass = {0};
     wndclass.cbSize         = sizeof(wndclass);
@@ -72,7 +69,7 @@ wWinMain(HINSTANCE h_instance,
 
     if (!RegisterClassEx(&wndclass))
     {
-        MessageBox(NULL, L"Failed to register class.", L"Error", MB_OK);
+        MessageBox(NULL, "Failed to register class.", "Error", MB_OK);
         goto early_exit;
     }
 
@@ -80,7 +77,7 @@ wWinMain(HINSTANCE h_instance,
         CreateWindowEx(
             WS_EX_OVERLAPPEDWINDOW,
             app_name,
-            L"Breakout",
+            "Breakout",
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT,
             CW_USEDEFAULT, CW_USEDEFAULT,
@@ -89,14 +86,14 @@ wWinMain(HINSTANCE h_instance,
 
     if (!hwnd)
     {
-        MessageBox(NULL, L"Failed to create main window.", L"Error", MB_OK);
+        MessageBox(NULL, "Failed to create main window.", "Error", MB_OK);
         goto early_exit;
     }
 
     g_platform.backbuffer = initialize_backbuffer(hwnd);
     if (g_platform.backbuffer.error)
     {
-        MessageBox(NULL, L"Failed to initialize backbuffer.", L"Error", MB_OK);
+        MessageBox(NULL, "Failed to initialize backbuffer.", "Error", MB_OK);
         goto early_exit;
     }
 
@@ -110,12 +107,12 @@ wWinMain(HINSTANCE h_instance,
                 ANSI_CHARSET, OUT_DEFAULT_PRECIS,
                 CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
                 DEFAULT_PITCH | FF_ROMAN,
-                L"Times New Roman"
+                "Times New Roman"
             );
 
     if (!g_platform.font)
     {
-        MessageBox(NULL, L"CreateFont failed.", L"Error", MB_OK);
+        MessageBox(NULL, "CreateFont failed.", "Error", MB_OK);
         goto early_exit;
     }
 
@@ -135,10 +132,10 @@ wWinMain(HINSTANCE h_instance,
     LARGE_INTEGER previousTicks = {0};
 
 #ifdef DEBUG_PRINT
-    wchar_t       old_window_text[1024] = {0};
-    GetWindowTextW(hwnd, old_window_text, 1024);
+    char       old_window_text[1024] = {0};
+    GetWindowText(hwnd, old_window_text, 1024);
 
-    wchar_t       new_window_text[1024] = {0};
+    char       new_window_text[1024] = {0};
     LARGE_INTEGER seconds = {0};
     LARGE_INTEGER fps_counter = {0};
 #endif
@@ -164,14 +161,14 @@ wWinMain(HINSTANCE h_instance,
 
         if (((seconds.QuadPart * 1000) / freq.QuadPart) >= 250)
         {
-            StringCchPrintfW(
+            StringCchPrintf(
                 new_window_text,
                 1024,
-                L"%s | FPS: %I64u",
+                "%s | FPS: %I64u",
                 old_window_text,
                 fps_counter.QuadPart
             );
-            SetWindowTextW(hwnd, new_window_text);
+            SetWindowText(hwnd, new_window_text);
 
             seconds.QuadPart -= freq.QuadPart;
             fps_counter.QuadPart = 0;

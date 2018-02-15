@@ -1,4 +1,5 @@
 #include <Xaudio2.h>
+#include <Objbase.h>
 #include <string.h>
 
 #include <cstdlib>
@@ -37,6 +38,11 @@ extern "C"
 int
 init_sound_system(void)
 {
+    if (CoInitializeEx(NULL, COINIT_MULTITHREADED) != S_OK)
+    {
+        return 0;
+    }
+
     if (FAILED(XAudio2Create(&audio, 0, XAUDIO2_DEFAULT_PROCESSOR)))
     {
         return 0;
