@@ -9,9 +9,28 @@
     #endif
 #define PATH_MAX 260
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #define GET_WORKING_DIR(buffer, maxlen) getcwd((buffer), (maxlen))
 #define PATH_MAX 4096
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+#else
+    #if defined(_UNICODE) || defined(UNICODE)
+    #define FOLDER_EXISTS(folder, t_ref) \
+        do \
+        { \
+            LPWIN32_FIND_DATAW find_file; \
+            HANDLE h = FindFirstFile(L"" folder, &find_file); \
+            if (h == INVALID_HANDLE_VALUE) { *t_ref = 0; } \
+            else \
+            { \
+                CloseHandle(h); \
+            }
+        } while (0)
+    #else
+    #endif
+#error "folder_exists not yet implemented for linux/unix"
 #endif
 
 void
