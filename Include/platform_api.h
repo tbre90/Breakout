@@ -21,8 +21,8 @@
         do \
         { \
             LPWIN32_FIND_DATAW find_file; \
-            HANDLE h = FindFirstFile(L"" folder, &find_file); \
-            if (h == INVALID_HANDLE_VALUE) { *t_ref = 0; } \
+            HANDLE h = FindFirstFile(L"" (folder), &find_file); \
+            if (h == INVALID_HANDLE_VALUE) { (*t_ref) = 0; } \
             else \
             { \
                 CloseHandle(h); \
