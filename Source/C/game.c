@@ -19,11 +19,11 @@ int game_initialize(void)
         { sound_init = -1; }
     }
 
-    if (!sound_file)
+    if (!sound_file[0])
     {
-        if (folder_exists("Assets"))
+        if (folder_exists(&sound_file[0], "Assets", PATH_MAX))
         {
-            strncat(sound_file, "\\Assets\\ball-hit.wav", PATH_MAX);
+            strncat(sound_file, "/ball-hit.wav", 14);
             test_sound(sound_file);
         }
     }

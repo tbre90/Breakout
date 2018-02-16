@@ -24,16 +24,13 @@ get_working_dir(char *buffer, int buff_len)
     return 1;
 }
 
-int
-folder_exists(char *folder)
+char*
+folder_exists(char * const path, char const * const folder, size_t path_len)
 {
 #if defined(_WIN32) || defined(_WIN64)
     char dir_name[PATH_MAX] = {0};
 
-    if (!get_working_dir(dir_name, PATH_MAX))
-    { goto no_folder; }
-
-    strncat(dir_name, "\\*", 4);
+    strncat(dir_name, ".\\*", 4);
 
     WIN32_FIND_DATAA ffd = {0};
     HANDLE find_handle = FindFirstFileA(dir_name, &ffd);
@@ -46,7 +43,42 @@ folder_exists(char *folder)
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
             if (!strncmp(ffd.cFileName, folder, strlen(folder)))
-            { goto found_folder; }
+            {
+                dir_name[strlen(dir_name) - 1] = '\0'; // remove wildstar
+                strncat(dir_name, folder, strlen(folder)); // .\<folder> (or ..\<folder>)
+                path[0] = '\0';
+                strncat(path, dir_name, path_len);
+
+                goto found_folder;
+            }
+        }
+    } while (FindNextFile(find_handle, &ffd) != 0);
+
+    FindClose(find_handle);
+
+    // try parent directory
+    dir_name[0] = '\0';
+    strncat(dir_name, "..\\*", 5);
+
+    memset(&ffd, 0, sizeof(WIN32_FIND_DATAA));
+    find_handle = FindFirstFileA(dir_name, &ffd);
+
+    if (find_handle == INVALID_HANDLE_VALUE)
+    { goto no_folder; }
+
+    do
+    {
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            if (!strncmp(ffd.cFileName, folder, strlen(folder)))
+            {
+                dir_name[strlen(dir_name) - 1] = '\0'; // remove wildstar
+                strncat(dir_name, folder, strlen(folder)); // .\<folder> (or ..\<folder>)
+                path[0] = '\0';
+                strncat(path, dir_name, path_len);
+
+                goto found_folder;
+            }
         }
     } while (FindNextFile(find_handle, &ffd) != 0);
 
@@ -57,10 +89,10 @@ folder_exists(char *folder)
 #endif
 
 no_folder:
-    return 0;
+    return NULL;
 
 found_folder:
-    return 1;
+    return path;
 }
 
 void

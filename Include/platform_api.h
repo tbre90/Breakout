@@ -7,10 +7,10 @@
 #endif
 
 int
-get_working_dir(char *buffer, int buff_len);
+get_working_dir(char * const buffer, int buff_len);
 
-int
-folder_exists(char *folder);
+char*
+folder_exists(char * const path, char const * const folder, size_t path_len);
 
 void
 platform_request_window_dimensions(int *width, int *height);
