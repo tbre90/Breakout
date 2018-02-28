@@ -107,8 +107,6 @@ test_sound(char const * const file)
 
     if (FAILED(source_voice->Start(0)))
     { return; }
-
-    delete data_buffer;
 }
 
 HRESULT
