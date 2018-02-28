@@ -24,15 +24,15 @@
 
 #include "..\..\Include\platform_api.h"
 
-HRESULT
+static HRESULT
 find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_position);
 
-HRESULT
+static HRESULT
 read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offset);
 
-IXAudio2 *audio = NULL;
-IXAudio2MasteringVoice *voice = NULL;
-IXAudio2SourceVoice *source_voice = NULL;
+static IXAudio2 *audio = NULL;
+static IXAudio2MasteringVoice *voice = NULL;
+static IXAudio2SourceVoice *source_voice = NULL;
 
 extern "C"
 int
@@ -109,7 +109,7 @@ test_sound(char const * const file)
     { return; }
 }
 
-HRESULT
+static HRESULT
 find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_position)
 {
     HRESULT hr = S_OK;
@@ -172,7 +172,7 @@ success_return:
     return S_OK;
 }
 
-HRESULT
+static HRESULT
 read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offset)
 {
     HRESULT hr = S_OK;
