@@ -178,7 +178,7 @@ HRESULT
 read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offset)
 {
     HRESULT hr = S_OK;
-    if (SetFilePointer(file, buffer_offset, NULL, FILE_BEGIN))
+    if (SetFilePointer(file, buffer_offset, NULL, FILE_BEGIN) == 0)
     { return HRESULT_FROM_WIN32(GetLastError()); }
 
     DWORD read = 0;
