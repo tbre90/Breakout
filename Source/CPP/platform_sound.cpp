@@ -30,9 +30,9 @@ find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_posit
 static HRESULT
 read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offset);
 
-static IXAudio2 *audio = NULL;
-static IXAudio2MasteringVoice *voice = NULL;
-static IXAudio2SourceVoice *source_voice = NULL;
+static IXAudio2 *g_audio = NULL;
+static IXAudio2MasteringVoice *g_mastering_voice = NULL;
+static IXAudio2SourceVoice *g_source_voice = NULL;
 
 extern "C"
 int
@@ -43,12 +43,12 @@ init_sound_system(void)
         return 0;
     }
 
-    if (FAILED(XAudio2Create(&audio, 0, XAUDIO2_DEFAULT_PROCESSOR)))
+    if (FAILED(XAudio2Create(&g_audio, 0, XAUDIO2_DEFAULT_PROCESSOR)))
     {
         return 0;
     }
 
-    if (FAILED(audio->CreateMasteringVoice(&voice)))
+    if (FAILED(g_audio->CreateMasteringVoice(&g_mastering_voice)))
     {
         return 0;
     }
@@ -99,13 +99,13 @@ test_sound(char const * const file)
     buffer.pAudioData = data_buffer;
     buffer.Flags = XAUDIO2_END_OF_STREAM;
 
-    if (FAILED(audio->CreateSourceVoice(&source_voice, (WAVEFORMATEX*)&wfx)))
+    if (FAILED(g_audio->CreateSourceVoice(&g_source_voice, (WAVEFORMATEX*)&wfx)))
     { return; }
 
-    if (FAILED(source_voice->SubmitSourceBuffer(&buffer)))
+    if (FAILED(g_source_voice->SubmitSourceBuffer(&buffer)))
     { return; }
 
-    if (FAILED(source_voice->Start(0)))
+    if (FAILED(g_source_voice->Start(0)))
     { return; }
 
     CloseHandle(sound_file);
