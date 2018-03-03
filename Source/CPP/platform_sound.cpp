@@ -104,8 +104,11 @@ play_sound(char const * const file)
     buffer.pAudioData = g_data_buffer;
     buffer.Flags = XAUDIO2_END_OF_STREAM;
 
-    if (FAILED(g_audio->CreateSourceVoice(&g_source_voice, (WAVEFORMATEX*)&wfx)))
-    { return; }
+    if (!g_source_voice)
+    {
+        if (FAILED(g_audio->CreateSourceVoice(&g_source_voice, (WAVEFORMATEX*)&wfx)))
+        { return; }
+    }
 
     if (FAILED(g_source_voice->SubmitSourceBuffer(&buffer)))
     { return; }
