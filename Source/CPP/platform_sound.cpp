@@ -40,9 +40,6 @@ struct sound
 
 static IXAudio2 *g_audio = NULL;
 static IXAudio2MasteringVoice *g_mastering_voice = NULL;
-//static IXAudio2SourceVoice *g_source_voice = NULL;
-//static BYTE *g_data_buffer = NULL;
-//static int g_currently_playing = 0;
 
 static std::vector<struct sound*> g_sounds;
 
