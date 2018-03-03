@@ -33,6 +33,7 @@ read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offse
 static IXAudio2 *g_audio = NULL;
 static IXAudio2MasteringVoice *g_mastering_voice = NULL;
 static IXAudio2SourceVoice *g_source_voice = NULL;
+static BYTE *g_data_buffer = NULL;
 
 extern "C"
 int
@@ -92,11 +93,15 @@ play_sound(char const * const file)
 
     find_chunk(sound_file, fourccDATA, chunk_size, chunk_position);
     
-    BYTE *data_buffer = new BYTE[chunk_size];
-    read_chunk_data(sound_file, data_buffer, chunk_size, chunk_position);
+    if (!g_data_buffer)
+    {
+        g_data_buffer = new BYTE[chunk_size];
+    }
+
+    read_chunk_data(sound_file, g_data_buffer, chunk_size, chunk_position);
 
     buffer.AudioBytes = chunk_size;
-    buffer.pAudioData = data_buffer;
+    buffer.pAudioData = g_data_buffer;
     buffer.Flags = XAUDIO2_END_OF_STREAM;
 
     if (FAILED(g_audio->CreateSourceVoice(&g_source_voice, (WAVEFORMATEX*)&wfx)))
