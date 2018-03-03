@@ -11,6 +11,12 @@ init_sound_system(void);
 extern "C"
 #endif
 void
-play_sound(char const * const file);
+play_sound(int sound);
+
+#ifdef __cplusplus
+extern "C"
+#endif
+int
+load_sound(char const * const file);
 
 #endif

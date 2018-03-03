@@ -7,6 +7,7 @@
 static struct game g_game;
 static int         sound_init = 0;
 static char        sound_file[PATH_MAX];
+static int         g_ball_sound = 0;
 
 static int rect_intersect(struct rectangle *r1, struct rectangle *r2);
 
@@ -24,6 +25,7 @@ int game_initialize(void)
         if (folder_exists(&sound_file[0], "Assets", PATH_MAX))
         {
             strncat(sound_file, "/ball-hit.wav", 14);
+            g_ball_sound = load_sound(sound_file);
         }
     }
 
@@ -323,7 +325,7 @@ check_for_ball_collision(struct entities * const entities,
         ball->circle.y -= ball_oob_bottom;
         ball->down = 0;
         ball->up = 1;
-        play_sound(sound_file);
+        play_sound(g_ball_sound);
     }
     
     // handle ball colliding with left side of window
@@ -333,7 +335,7 @@ check_for_ball_collision(struct entities * const entities,
         ball->circle.x -= ball_oob_left;
         ball->left = 0;
         ball->right = 1;
-        play_sound(sound_file);
+        play_sound(g_ball_sound);
     }
 
     // handle ball colliding with right side of window
@@ -343,7 +345,7 @@ check_for_ball_collision(struct entities * const entities,
         ball->circle.x -= ball_oob_right;
         ball->right = 0;
         ball->left = 1;
-        play_sound(sound_file);
+        play_sound(g_ball_sound);
     }
 
     // handle ball colliding with top of window
@@ -353,7 +355,7 @@ check_for_ball_collision(struct entities * const entities,
         ball->circle.y -= ball_oob_top;
         ball->up = 0;
         ball->down = 1;
-        play_sound(sound_file);
+        play_sound(g_ball_sound);
     }
 
     // handle ball colliding with paddle
@@ -364,7 +366,7 @@ check_for_ball_collision(struct entities * const entities,
 
         ball->down = 0;
         ball->up = 1;
-        play_sound(sound_file);
+        play_sound(g_ball_sound);
     }
 
     // handle colliding with bricks
@@ -392,7 +394,7 @@ check_for_ball_collision(struct entities * const entities,
                         bricks->bricks[(row * bricks->column) + col].rect.height
                     );
 
-                    play_sound(sound_file);
+                    play_sound(g_ball_sound);
                     goto end;
                 }
             }

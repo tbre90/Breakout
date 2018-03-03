@@ -2,6 +2,7 @@
 #include <Objbase.h>
 #include <string.h>
 
+#include <vector>
 #include <cstdlib>
 
 #ifdef _XBOX //Big-Endian
@@ -30,11 +31,20 @@ find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_posit
 static HRESULT
 read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offset);
 
+struct sound
+{
+    IXAudio2SourceVoice *source_voice;
+    XAUDIO2_BUFFER *buffer;
+    int currently_playing;
+};
+
 static IXAudio2 *g_audio = NULL;
 static IXAudio2MasteringVoice *g_mastering_voice = NULL;
-static IXAudio2SourceVoice *g_source_voice = NULL;
-static BYTE *g_data_buffer = NULL;
-static int g_currently_playing = 0;
+//static IXAudio2SourceVoice *g_source_voice = NULL;
+//static BYTE *g_data_buffer = NULL;
+//static int g_currently_playing = 0;
+
+static std::vector<struct sound*> g_sounds;
 
 extern "C"
 int
@@ -59,8 +69,8 @@ init_sound_system(void)
 }
 
 extern "C"
-void
-play_sound(char const * const file)
+int
+load_sound(char const * const file)
 {
     HANDLE sound_file =
         CreateFileA(
@@ -73,10 +83,13 @@ play_sound(char const * const file)
             NULL
         );
 
-    if (sound_file == INVALID_HANDLE_VALUE) { return; }
+    if (sound_file == INVALID_HANDLE_VALUE) { return -1; }
+
+    struct sound *new_sound = new struct sound();
+    new_sound->buffer = new XAUDIO2_BUFFER();
+    int index_return = static_cast<int>(g_sounds.size());
 
     WAVEFORMATEXTENSIBLE wfx = {0};
-    XAUDIO2_BUFFER buffer = {0};
 
     DWORD chunk_size = 0;
     DWORD chunk_position = 0;
@@ -86,7 +99,7 @@ play_sound(char const * const file)
     read_chunk_data(sound_file, &file_type, sizeof(DWORD), chunk_position);
     if (file_type != fourccWAVE)
     {
-        return;
+        return -2;
     }
 
     find_chunk(sound_file, fourccFMT, chunk_size, chunk_position);
@@ -94,39 +107,49 @@ play_sound(char const * const file)
 
     find_chunk(sound_file, fourccDATA, chunk_size, chunk_position);
     
-    if (!g_data_buffer)
-    {
-        g_data_buffer = new BYTE[chunk_size];
-    }
+    BYTE *data_buffer = new BYTE[chunk_size];
 
-    read_chunk_data(sound_file, g_data_buffer, chunk_size, chunk_position);
+    read_chunk_data(sound_file, data_buffer, chunk_size, chunk_position);
 
-    buffer.AudioBytes = chunk_size;
-    buffer.pAudioData = g_data_buffer;
-    buffer.Flags = 0;
+    new_sound->buffer->AudioBytes = chunk_size;
+    new_sound->buffer->pAudioData = data_buffer;
+    new_sound->buffer->Flags = XAUDIO2_END_OF_STREAM;
 
-    if (!g_source_voice)
-    {
-        if (FAILED(g_audio->CreateSourceVoice(&g_source_voice, (WAVEFORMATEX*)&wfx)))
-        { return; }
-    }
+    if (FAILED(g_audio->CreateSourceVoice(&(new_sound->source_voice), (WAVEFORMATEX*)&wfx)))
+    { return -3; }
 
-    if (g_currently_playing)
-    {
-        g_source_voice->Stop(0, XAUDIO2_COMMIT_NOW);
-        g_source_voice->FlushSourceBuffers();
-        g_currently_playing = 0;
-    }
-
-    if (FAILED(g_source_voice->SubmitSourceBuffer(&buffer)))
-    { return; }
-
-    if (FAILED(g_source_voice->Start(0)))
-    { return; }
-    else
-    { g_currently_playing = 1; }
+    g_sounds.push_back(new_sound);
 
     CloseHandle(sound_file);
+
+    return index_return;
+}
+
+extern "C"
+void
+play_sound(int sound)
+{
+    if (sound > g_sounds.size() || sound < 0)
+    { return; }
+
+    struct sound *s = g_sounds[sound];
+
+    if (s->currently_playing)
+    {
+        s->source_voice->Stop(0, XAUDIO2_COMMIT_NOW);
+        s->source_voice->FlushSourceBuffers();
+        s->currently_playing = 0;
+    }
+
+    HRESULT hr = s->source_voice->SubmitSourceBuffer(s->buffer);
+    if (FAILED(hr))
+    { return; }
+
+    hr = s->source_voice->Start(0);
+    if (FAILED(hr))
+    { return; }
+    else
+    { s->currently_playing = 1; }
 }
 
 static HRESULT
