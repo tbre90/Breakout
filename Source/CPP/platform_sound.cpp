@@ -34,6 +34,7 @@ static IXAudio2 *g_audio = NULL;
 static IXAudio2MasteringVoice *g_mastering_voice = NULL;
 static IXAudio2SourceVoice *g_source_voice = NULL;
 static BYTE *g_data_buffer = NULL;
+static int g_currently_playing = 0;
 
 extern "C"
 int
@@ -102,7 +103,7 @@ play_sound(char const * const file)
 
     buffer.AudioBytes = chunk_size;
     buffer.pAudioData = g_data_buffer;
-    buffer.Flags = XAUDIO2_END_OF_STREAM;
+    buffer.Flags = 0;
 
     if (!g_source_voice)
     {
@@ -110,11 +111,20 @@ play_sound(char const * const file)
         { return; }
     }
 
+    if (g_currently_playing)
+    {
+        g_source_voice->Stop(0, XAUDIO2_COMMIT_NOW);
+        g_source_voice->FlushSourceBuffers();
+        g_currently_playing = 0;
+    }
+
     if (FAILED(g_source_voice->SubmitSourceBuffer(&buffer)))
     { return; }
 
     if (FAILED(g_source_voice->Start(0)))
     { return; }
+    else
+    { g_currently_playing = 1; }
 
     CloseHandle(sound_file);
 }
