@@ -4,7 +4,7 @@
 
 #include "..\..\Include\game.h"
 
-static struct game game;
+static struct game g_game;
 static int         sound_init = 0;
 static char        sound_file[PATH_MAX];
 
@@ -27,16 +27,16 @@ int game_initialize(void)
         }
     }
 
-    if (!game.rng_seeded)
+    if (!g_game.rng_seeded)
     {
         srand((unsigned)time(NULL));
-        game.rng_seeded = 1;
+        g_game.rng_seeded = 1;
     }
 
-    if (game.entities.bricks.bricks)
+    if (g_game.entities.bricks.bricks)
     {
-        free(game.entities.bricks.bricks);
-        game.entities.bricks.bricks = NULL;
+        free(g_game.entities.bricks.bricks);
+        g_game.entities.bricks.bricks = NULL;
     }
 
     int window_width = 0;
@@ -44,16 +44,16 @@ int game_initialize(void)
 
     platform_request_window_dimensions(&window_width, &window_height);
 
-    game.window.x = 0;
-    game.window.y = 0;
-    game.window.width = window_width;
-    game.window.height = window_height;
+    g_game.window.x = 0;
+    g_game.window.y = 0;
+    g_game.window.width = window_width;
+    g_game.window.height = window_height;
 
     int paddle_width = window_width / 20;
     int paddle_height = window_height / 40;
     int paddle_acceleration = window_width / 80;
 
-    game.entities.paddle =
+    g_game.entities.paddle =
         create_paddle(
             (window_width / 2) - (paddle_width / 2),
             window_height - (paddle_height * 2),
@@ -66,7 +66,7 @@ int game_initialize(void)
     int ball_radius = paddle_width / 3;
     int ball_acceleration = window_height / 80;
 
-    game.entities.ball =
+    g_game.entities.ball =
         create_unsexy_non_antialiased_ball(
             (window_width / 2) - (ball_radius / 2),
             (window_height / 2) - (ball_radius / 2),
@@ -90,7 +90,7 @@ int game_initialize(void)
         num_brick_rows,
         num_brick_columns,
         padding,
-        &game.entities.bricks
+        &g_game.entities.bricks
     ))
     {
         return 0;
@@ -99,7 +99,7 @@ int game_initialize(void)
     platform_set_background(0xFFFFFF);
     platform_paint_background();
 
-    game.ms_per_frame = FPS_60;
+    g_game.ms_per_frame = FPS_60;
 
     return 1;
 }
@@ -107,7 +107,7 @@ int game_initialize(void)
 double
 game_request_ms_per_frame(void)
 {
-    return game.ms_per_frame;
+    return g_game.ms_per_frame;
 }
 
 int
@@ -116,34 +116,34 @@ game_main(struct keyboard *keyboard)
     keyboard = keyboard;
     // move paddle and check if it's out of bounds
     platform_remove_rectangle(
-        game.entities.paddle.rect.x,
-        game.entities.paddle.rect.y,
-        game.entities.paddle.rect.width,
-        game.entities.paddle.rect.height
+        g_game.entities.paddle.rect.x,
+        g_game.entities.paddle.rect.y,
+        g_game.entities.paddle.rect.width,
+        g_game.entities.paddle.rect.height
     );
-    move_paddle(&game.entities.paddle, keyboard);
-    is_paddle_out_of_bounds(&game.entities.paddle, &game.window);
+    move_paddle(&g_game.entities.paddle, keyboard);
+    is_paddle_out_of_bounds(&g_game.entities.paddle, &g_game.window);
 
     // move ball and check for collisions
     platform_remove_circle(
-        game.entities.ball.circle.x,
-        game.entities.ball.circle.y,
-        game.entities.ball.circle.width,
-        game.entities.ball.circle.height
+        g_game.entities.ball.circle.x,
+        g_game.entities.ball.circle.y,
+        g_game.entities.ball.circle.width,
+        g_game.entities.ball.circle.height
     );
-    move_ball(&game.entities.ball);
-    check_for_ball_collision(&game.entities, &game.window);
+    move_ball(&g_game.entities.ball);
+    check_for_ball_collision(&g_game.entities, &g_game.window);
 
     draw_ball(
-        &game.entities.ball
+        &g_game.entities.ball
     );
 
     draw_paddle(
-        &game.entities.paddle
+        &g_game.entities.paddle
     );
 
     draw_bricks(
-        &game.entities.bricks
+        &g_game.entities.bricks
     );
 
     return 1;
