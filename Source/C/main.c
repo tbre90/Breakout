@@ -243,9 +243,6 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
     LRESULT result = 0;
 
-    static int client_height = 0;
-    static int client_width = 0;
-
     short key_state = 0;
 
     switch (message)
@@ -307,11 +304,8 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 
         case WM_SIZE:
         {
-            client_width  = LOWORD(lparam);
-            client_height = HIWORD(lparam);
-
-            g_platform.w.width = client_width;
-            g_platform.w.height = client_height;
+            g_platform.w.width = LOWORD(lparam);
+            g_platform.w.height = HIWORD(lparam);
         } break;
 
         case WM_DESTROY:
