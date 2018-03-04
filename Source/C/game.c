@@ -98,10 +98,16 @@ int game_initialize(void)
         return 0;
     }
 
-    platform_set_background(0xFFFFFF);
-    platform_paint_background();
+    platform_request_text_dimension(
+        &g_game.text.width,
+        &g_game.text.height
+    );
 
     g_game.ms_per_frame = FPS_144;
+    g_game.state = GAME_RUNNING;
+
+    platform_set_background(0xFFFFFF);
+    platform_paint_background();
 
     return 1;
 }
@@ -115,38 +121,52 @@ game_request_ms_per_frame(void)
 int
 game_main(struct keyboard *keyboard)
 {
-    keyboard = keyboard;
-    // move paddle and check if it's out of bounds
-    platform_remove_rectangle(
-        g_game.entities.paddle.rect.x,
-        g_game.entities.paddle.rect.y,
-        g_game.entities.paddle.rect.width,
-        g_game.entities.paddle.rect.height
-    );
-    move_paddle(&g_game.entities.paddle, keyboard);
-    is_paddle_out_of_bounds(&g_game.entities.paddle, &g_game.window);
+    if (g_game.state == GAME_OVER)
+    {
+        char const * const game_over_text = "GAME OVER";
+        size_t length = strlen(game_over_text);
 
-    // move ball and check for collisions
-    platform_remove_circle(
-        g_game.entities.ball.circle.x,
-        g_game.entities.ball.circle.y,
-        g_game.entities.ball.circle.width,
-        g_game.entities.ball.circle.height
-    );
-    move_ball(&g_game.entities.ball);
-    check_for_ball_collision(&g_game.entities, &g_game.window);
+        platform_put_text(
+            g_game.window.width / 2 - (int)length / 2,
+            g_game.window.height / 2 - g_game.text.height / 2,
+            game_over_text,
+            length
+        );
+    }
+    else
+    {
+        // move paddle and check if it's out of bounds
+        platform_remove_rectangle(
+            g_game.entities.paddle.rect.x,
+            g_game.entities.paddle.rect.y,
+            g_game.entities.paddle.rect.width,
+            g_game.entities.paddle.rect.height
+        );
+        move_paddle(&g_game.entities.paddle, keyboard);
+        is_paddle_out_of_bounds(&g_game.entities.paddle, &g_game.window);
 
-    draw_ball(
-        &g_game.entities.ball
-    );
+        // move ball and check for collisions
+        platform_remove_circle(
+            g_game.entities.ball.circle.x,
+            g_game.entities.ball.circle.y,
+            g_game.entities.ball.circle.width,
+            g_game.entities.ball.circle.height
+        );
+        move_ball(&g_game.entities.ball);
+        g_game.state = check_for_ball_collision(&g_game.entities, &g_game.window);
 
-    draw_paddle(
-        &g_game.entities.paddle
-    );
+        draw_ball(
+            &g_game.entities.ball
+        );
 
-    draw_bricks(
-        &g_game.entities.bricks
-    );
+        draw_paddle(
+            &g_game.entities.paddle
+        );
+
+        draw_bricks(
+            &g_game.entities.bricks
+        );
+    }
 
     return 1;
 }
@@ -317,7 +337,6 @@ check_for_ball_collision(struct entities * const entities,
     struct paddle *paddle = &(entities->paddle);
     struct bricks *bricks = &(entities->bricks);
 
-
     // handle ball colliding with bottom of window
     if ((ball->circle.y + ball->circle.height) >= (window->y + window->height))
     {
@@ -326,6 +345,8 @@ check_for_ball_collision(struct entities * const entities,
         ball->down = 0;
         ball->up = 1;
         play_sound(g_ball_sound);
+
+        return GAME_OVER;
     }
     
     // handle ball colliding with left side of window

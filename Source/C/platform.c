@@ -142,3 +142,15 @@ platform_remove_circle(int x, int y, int width, int height)
 {
     return remove_rectangle(x, y, width, height);
 }
+
+int
+platform_put_text(int x, int y, char const * const text, size_t length)
+{
+    return put_text(x, y, text, length);
+}
+
+void
+platform_request_text_dimension(int * const width, int * const height)
+{
+    request_text_dimension(width, height);
+}

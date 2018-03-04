@@ -214,7 +214,7 @@ WinMain(HINSTANCE h_instance,
         while (lag >= ms_per_frame)
         {
             struct keyboard k = g_platform.keyboard;
-            game_main(&k);
+            game_main(&k, lag);
 
             lag -= ms_per_frame;
         }
@@ -459,4 +459,37 @@ draw_circle(int x, int y, int width, int height, int fill, int tint)
     DeleteObject(SelectObject(buffer->device_context, old_pen));
 
     return 1;
+}
+
+int
+put_text(int x, int y, char const * const text, size_t length)
+{
+    struct backbuffer * const buffer = get_backbuffer();
+
+    SetTextAlign(
+        buffer->device_context,
+        TA_CENTER
+    );
+
+    return (int)TextOutA(
+                buffer->device_context,
+                x, y,
+                text, (int)length
+            );
+}
+
+void
+request_text_dimension(int * const width, int * const height)
+{
+    struct backbuffer * const buffer = get_backbuffer();
+
+    TEXTMETRICA tm = {0};
+
+    GetTextMetricsA(
+        buffer->device_context,
+        &tm
+    );
+
+    *width = tm.tmAveCharWidth;
+    *height = tm.tmHeight;
 }

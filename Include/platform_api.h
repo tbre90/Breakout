@@ -36,9 +36,11 @@ platform_draw_tinted_circle(int x, int y, int width, int height, int fill, int t
 int
 platform_remove_circle(int x, int y, int width, int height);
 
-// TODO: make more general
-//int
-//platform_sound(void);
+int
+platform_put_text(int x, int y, char const * const text, size_t length);
+
+void
+platform_request_text_dimension(int * const width, int * const height);
 
 #define PLATFORM_API_H
 #endif

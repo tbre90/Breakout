@@ -70,11 +70,18 @@ struct entities
     struct bricks bricks;
 };
 
+struct text
+{
+    int width;
+    int height;
+};
+
 struct game
 {
     struct window window;
     struct entities entities;
     struct keyboard keyboard;
+    struct text text;
     enum { GAME_OVER = 0, GAME_RUNNING = 1 } state;
     double ms_per_frame;
     int    rng_seeded;
