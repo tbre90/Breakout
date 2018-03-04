@@ -21,6 +21,12 @@ struct platform
 {
     struct backbuffer backbuffer;
     struct keyboard keyboard;
+    struct window
+    {
+        HDC device_context;
+        int width;
+        int height;
+    } w;
     HFONT font;
 };
 
@@ -33,6 +39,24 @@ static struct backbuffer *
 get_backbuffer(void)
 {
     return &g_platform.backbuffer;
+}
+
+static void
+render(HDC device_context,
+       int client_width,
+       int client_height,
+       struct backbuffer *buffer)
+{
+    StretchBlt(
+        device_context,
+        0, 0,
+        client_width, client_height,
+        buffer->device_context,
+        0, 0,
+        buffer->width,
+        buffer->height,
+        SRCCOPY
+    );
 }
 
 int WINAPI
@@ -116,6 +140,8 @@ WinMain(HINSTANCE h_instance,
         goto early_exit;
     }
 
+    g_platform.w.device_context = GetDC(hwnd);
+
     SelectObject(g_platform.backbuffer.device_context, g_platform.font);
 
     // start the game
@@ -191,7 +217,12 @@ WinMain(HINSTANCE h_instance,
             lag -= ms_per_frame;
         }
 
-        RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+        render(
+            g_platform.w.device_context,
+            g_platform.w.width,
+            g_platform.w.height,
+            &(g_platform.backbuffer)
+        );
 
 #ifdef DEBUG_PRINT
         fps_counter.QuadPart++;
@@ -287,6 +318,9 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
         {
             client_width  = LOWORD(lparam);
             client_height = HIWORD(lparam);
+
+            g_platform.w.width = client_width;
+            g_platform.w.height = client_height;
         } break;
 
         case WM_DESTROY:
