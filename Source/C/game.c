@@ -53,7 +53,7 @@ int game_initialize(void)
 
     int paddle_width = window_width / 20;
     int paddle_height = window_height / 40;
-    int paddle_acceleration = window_width / 80;
+    int paddle_acceleration = window_width / (80 * 2);
 
     g_game.entities.paddle =
         create_paddle(
@@ -66,7 +66,7 @@ int game_initialize(void)
         );
 
     int ball_radius = paddle_width / 3;
-    int ball_acceleration = window_height / 80;
+    int ball_acceleration = window_height / (80 * 2);
 
     g_game.entities.ball =
         create_unsexy_non_antialiased_ball(
@@ -101,7 +101,7 @@ int game_initialize(void)
     platform_set_background(0xFFFFFF);
     platform_paint_background();
 
-    g_game.ms_per_frame = FPS_60;
+    g_game.ms_per_frame = FPS_144;
 
     return 1;
 }

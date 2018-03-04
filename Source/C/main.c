@@ -57,6 +57,8 @@ render(HDC device_context,
         buffer->height,
         SRCCOPY
     );
+
+    GdiFlush();
 }
 
 int WINAPI
@@ -253,17 +255,6 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
             PAINTSTRUCT ps;
             HDC hdc;
             hdc = BeginPaint(window, &ps);
-
-            // transfer backbuffer to frontbuffer
-            StretchBlt(
-                hdc,
-                0, 0,
-                client_width, client_height,
-                g_platform.backbuffer.device_context,
-                0, 0,
-                g_platform.backbuffer.width, g_platform.backbuffer.height,
-                SRCCOPY
-            );
 
             EndPaint(window, &ps);
         } break;
