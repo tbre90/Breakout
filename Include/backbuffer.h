@@ -20,13 +20,13 @@ initialize_backbuffer(HWND main_window_handle)
 
     if (!main_window_handle)
     {
-        goto early_return;
+        goto error_no_handle_provided;
     }
 
     RECT client_dimensions;
     if (!GetClientRect(main_window_handle, &client_dimensions))
     {
-        goto early_return;
+        goto error_windows_api;
     }
 
     buffer.width = client_dimensions.right - client_dimensions.left;
@@ -34,13 +34,13 @@ initialize_backbuffer(HWND main_window_handle)
 
     // get the main windows device context
     HDC main_window_dc = GetDC(main_window_handle); 
-    if (!main_window_dc) { goto early_return; }
+    if (!main_window_dc) { goto error_windows_api; }
 
     COLORREF wnd_bkgn = GetBkColor(main_window_dc);
 
     if (wnd_bkgn == CLR_INVALID)
     {
-        goto early_return;
+        goto error_windows_api;
     }
 
     buffer.background_color = wnd_bkgn;
@@ -56,16 +56,22 @@ initialize_backbuffer(HWND main_window_handle)
             buffer.width,
             buffer.height
         );
-    if (!buffer.handle_bitmap) { goto error_release_main_window_dc; }
+    if (!buffer.handle_bitmap) { goto error_delete_backbuffer_dc; }
 
     // select bitmap into device_context
     SelectObject(buffer.device_context, buffer.handle_bitmap);
 
     goto success;
 
+error_delete_backbuffer_dc:
+    DeleteDC(buffer.device_context);
+    buffer.device_context = NULL;
+
 error_release_main_window_dc:
     ReleaseDC(main_window_handle, main_window_dc);
-early_return:
+
+error_no_handle_provided:
+error_windows_api:
     buffer.error = 1;
     return buffer;
 

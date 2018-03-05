@@ -238,7 +238,7 @@ exit:
 }
 
 LRESULT CALLBACK
-WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
 {
     LRESULT result = 0;
 
@@ -250,9 +250,9 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
         {
             PAINTSTRUCT ps;
             HDC hdc;
-            hdc = BeginPaint(window, &ps);
+            hdc = BeginPaint(handle_window, &ps);
 
-            EndPaint(window, &ps);
+            EndPaint(handle_window, &ps);
         } break;
 
         case WM_ERASEBKGND:
@@ -286,19 +286,16 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
                 key_state = GetKeyState(VK_CONTROL);
                 if (key_state & (1 << 15))
                 {
-                    SendMessage(window, WM_RESTART_GAME, 0, 0);
+                    SendMessage(handle_window, WM_RESTART_GAME, 0, 0);
                 }
             }
         } break;
         
         case WM_RESTART_GAME:
         {
-            // TODO: Call game's reset api function
-            //       (not yet implemented)
-
             game_initialize();
 
-            RedrawWindow(window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+            RedrawWindow(handle_window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
         } break;
 
         case WM_SIZE:
@@ -314,7 +311,7 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 
         default:
         {
-            return DefWindowProc(window, message, wparam, lparam);
+            return DefWindowProc(handle_window, message, wparam, lparam);
         } break;
     }
 
