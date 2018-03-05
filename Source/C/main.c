@@ -181,8 +181,7 @@ WinMain(HINSTANCE h_instance,
         elapsedTicks.QuadPart = currentTicks.QuadPart - previousTicks.QuadPart;
         previousTicks = currentTicks;
 
-        double elapsedMs = ((double)(1000 * elapsedTicks.QuadPart)) / (double)freq.QuadPart;
-        lag += elapsedMs;
+        lag += ((double)(1000 * elapsedTicks.QuadPart)) / (double)freq.QuadPart;
 
 #ifdef DEBUG_PRINT
         seconds.QuadPart += elapsedTicks.QuadPart;
@@ -192,7 +191,7 @@ WinMain(HINSTANCE h_instance,
             StringCchPrintf(
                 new_window_text,
                 1024,
-                "%s | FPS: %I64u",
+                "%s | FPS: %I64d",
                 old_window_text,
                 fps_counter.QuadPart
             );
@@ -214,7 +213,7 @@ WinMain(HINSTANCE h_instance,
         while (lag >= ms_per_frame)
         {
             struct keyboard k = g_platform.keyboard;
-            game_main(&k, lag);
+            game_main(&k);
 
             lag -= ms_per_frame;
         }
