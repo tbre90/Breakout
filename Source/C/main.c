@@ -26,7 +26,7 @@ struct platform
         HDC device_context;
         int width;
         int height;
-    } w;
+    } window;
     HFONT font;
 };
 
@@ -142,7 +142,7 @@ WinMain(HINSTANCE h_instance,
         goto early_exit;
     }
 
-    g_platform.w.device_context = GetDC(hwnd);
+    g_platform.window.device_context = GetDC(hwnd);
 
     SelectObject(g_platform.backbuffer.device_context, g_platform.font);
 
@@ -219,9 +219,9 @@ WinMain(HINSTANCE h_instance,
         }
 
         render(
-            g_platform.w.device_context,
-            g_platform.w.width,
-            g_platform.w.height,
+            g_platform.window.device_context,
+            g_platform.window.width,
+            g_platform.window.height,
             &(g_platform.backbuffer)
         );
 
@@ -303,8 +303,8 @@ WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 
         case WM_SIZE:
         {
-            g_platform.w.width = LOWORD(lparam);
-            g_platform.w.height = HIWORD(lparam);
+            g_platform.window.width = LOWORD(lparam);
+            g_platform.window.height = HIWORD(lparam);
         } break;
 
         case WM_DESTROY:
