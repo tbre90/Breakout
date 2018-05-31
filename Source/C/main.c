@@ -156,6 +156,8 @@ WinMain(HINSTANCE h_instance,
     MSG msg = {0};
 
     LARGE_INTEGER freq          = {0};
+    QueryPerformanceFrequency(&freq);
+
     LARGE_INTEGER currentTicks  = {0};
     LARGE_INTEGER previousTicks = {0};
 
@@ -164,11 +166,11 @@ WinMain(HINSTANCE h_instance,
     GetWindowText(hwnd, old_window_text, 1024);
 
     char       new_window_text[1024] = {0};
+
     LARGE_INTEGER seconds = {0};
     LARGE_INTEGER fps_counter = {0};
-#endif
 
-    QueryPerformanceFrequency(&freq);
+#endif
 
     double ms_per_frame = game_request_ms_per_frame();
 
@@ -184,6 +186,7 @@ WinMain(HINSTANCE h_instance,
         lag += ((double)(1000 * elapsedTicks.QuadPart)) / (double)freq.QuadPart;
 
 #ifdef DEBUG_PRINT
+
         seconds.QuadPart += elapsedTicks.QuadPart;
 
         if (((seconds.QuadPart * 1000) / freq.QuadPart) >= 250)

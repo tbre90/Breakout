@@ -133,6 +133,17 @@ game_main(struct keyboard *keyboard)
             length
         );
     }
+    else if (g_game.state == GAME_WON)
+    {
+        char const * const game_won_text = "GAME WON";
+        size_t length = strlen(game_won_text);
+        platform_put_text(
+            g_game.window.width / 2 - (int)length / 2,
+            g_game.window.height / 2 - g_game.text.height / 2,
+            game_won_text,
+            length
+        );
+    }
     else
     {
         // move paddle and check if it's out of bounds
@@ -153,7 +164,17 @@ game_main(struct keyboard *keyboard)
             g_game.entities.ball.circle.height
         );
         move_ball(&g_game.entities.ball);
-        g_game.state = check_for_ball_collision(&g_game.entities, &g_game.window);
+        enum state s = check_for_ball_collision(&g_game.entities, &g_game.window);
+        if (s == BRICK_REMOVED)
+        {
+            g_game.entities.bricks.num_alive--;
+            if (!g_game.entities.bricks.num_alive)
+            {
+                g_game.state = GAME_WON;
+            }
+        }
+        else
+        { g_game.state = s; }
 
         draw_ball(
             &g_game.entities.ball
@@ -171,10 +192,6 @@ game_main(struct keyboard *keyboard)
     return 1;
 }
 
-
-// (x) will be the x coordinate of the first brick
-// caller's responsibility to make sure number of bricks
-// fit in window
 static struct bricks*
 create_bricks(int width,
               int height,
@@ -208,6 +225,7 @@ create_bricks(int width,
             dest->bricks[(i * columns) + j].rect.height = height - padding;
             dest->bricks[(i * columns) + j].rect.color = random_color;
             dest->bricks[(i * columns) + j].alive = 1;
+            dest->num_alive++;
         }
     }
 
@@ -416,14 +434,16 @@ check_for_ball_collision(struct entities * const entities,
                     );
 
                     play_sound(g_ball_sound);
-                    goto end;
+                    goto brick_removed;
                 }
             }
         }
     }
 
-end:
-    return GAME_RUNNING;
+return GAME_RUNNING;
+
+brick_removed:
+    return BRICK_REMOVED;
 }
 
 static int

@@ -49,6 +49,7 @@ struct bricks
     struct brick *bricks;
     int row;
     int column;
+    size_t num_alive;
 };
 
 struct circle
@@ -82,7 +83,7 @@ struct game
     struct entities entities;
     struct keyboard keyboard;
     struct text text;
-    enum { GAME_OVER = 0, GAME_RUNNING = 1 } state;
+    enum { GAME_OVER = 0, GAME_RUNNING, GAME_WON, BRICK_REMOVED, } state;
     double ms_per_frame;
     int    rng_seeded;
 };
