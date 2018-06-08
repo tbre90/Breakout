@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "..\..\Include\game.h"
+#include "..\..\Assets\ball-hit.h"
 
 static struct game g_game;
 static int         sound_init = 0;
@@ -20,25 +21,20 @@ int game_initialize(void)
         { sound_init = -1; }
     }
 
-    if (!sound_file[0])
-    {
-        if (folder_exists(&sound_file[0], "Assets", PATH_MAX))
-        {
-            strncat(sound_file, "/ball-hit.wav", 14);
-            g_ball_sound = load_sound(sound_file);
-        }
-    }
+    //if (!sound_file[0])
+    //{
+        //if (folder_exists(&sound_file[0], "Assets", PATH_MAX))
+        //{
+            //strncat(sound_file, "/ball-hit.wav", 14);
+            g_ball_sound = load_sound_embedded((char const * const)game_asset_sound_ball_hit, sizeof(game_asset_sound_ball_hit) / sizeof(game_asset_sound_ball_hit[0]));
+            //g_ball_sound = load_sound(sound_file);
+        //}
+    //}
 
     if (!g_game.rng_seeded)
     {
         srand((unsigned)time(NULL));
         g_game.rng_seeded = 1;
-    }
-
-    if (g_game.entities.bricks.bricks)
-    {
-        free(g_game.entities.bricks.bricks);
-        g_game.entities.bricks.bricks = NULL;
     }
 
     int window_width = 0;
@@ -86,17 +82,25 @@ int game_initialize(void)
 
     int padding = 2;
 
-    if (!create_bricks(
+    if (!g_game.entities.bricks.bricks)
+    {
+        g_game.entities.bricks.bricks = calloc(num_brick_rows * num_brick_columns, sizeof(struct brick));
+        if (!g_game.entities.bricks.bricks)
+        { return 0; }
+    }
+    else
+    {
+        memset(g_game.entities.bricks.bricks, 0, sizeof(struct brick) * num_brick_columns * num_brick_rows);
+    }
+
+    create_bricks(
         brick_width,
         brick_height,
         num_brick_rows,
         num_brick_columns,
         padding,
         &g_game.entities.bricks
-    ))
-    {
-        return 0;
-    }
+    );
 
     platform_request_text_dimension(
         &g_game.text.width,
@@ -200,13 +204,6 @@ create_bricks(int width,
               int padding,
               struct bricks * const dest)
 {
-
-    dest->bricks = calloc(rows * columns, sizeof(struct brick));
-    if (!(dest->bricks))
-    {
-        return NULL;
-    }
-
     for (int i = 0; i < rows; ++i)
     {
         // make fabulous bricks

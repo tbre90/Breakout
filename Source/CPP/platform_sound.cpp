@@ -25,6 +25,13 @@
 
 #include "..\..\Include\platform_api.h"
 
+struct embedded_sound
+{
+    char const * const byte_array;
+    size_t read_offset;
+    size_t size;
+};
+
 static HRESULT
 find_chunk(HANDLE file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_position);
 
@@ -118,6 +125,131 @@ load_sound(char const * const file)
     g_sounds.push_back(new_sound);
 
     CloseHandle(sound_file);
+
+    return index_return;
+}
+
+static size_t
+read_embedded(void *dst, embedded_sound *src, size_t size)
+{
+    if (src->read_offset + size >= src->size)
+    { return 0; }
+
+    memcpy(dst, src->byte_array + src->read_offset, size);
+    src->read_offset += size;
+
+    return size;
+}
+
+static int
+find_chunk_embedded(embedded_sound *file, DWORD fourcc, DWORD &chunk_size, DWORD &chunk_data_position)
+{
+    file->read_offset = 0;
+
+    DWORD chunk_type = 0;
+    DWORD chunk_data_size = 0;
+    DWORD riff_data_size = 0;
+    DWORD file_type = 0;
+    DWORD bytes_read = 0;
+    DWORD offset = 0;
+
+    int read_result = 1;
+
+    while (read_result)
+    {
+        read_result = static_cast<int>(read_embedded(&chunk_type, file, sizeof(DWORD)));
+        read_result = static_cast<int>(read_embedded(&chunk_data_size, file, sizeof(DWORD)));
+
+        switch (chunk_type)
+        {
+            case fourccRIFF:
+            {
+                riff_data_size = chunk_data_size;
+                chunk_data_size = 4;
+                read_result = static_cast<int>(read_embedded(&file_type, file, sizeof(DWORD)));
+            } break;
+            default:
+            {
+                file->read_offset += chunk_data_size;
+                if (file->read_offset >= file->size)
+                { goto err_return; }
+            } break;
+        }
+
+        offset += sizeof(DWORD) * 2;
+
+        if (chunk_type == fourcc)
+        {
+            chunk_size = chunk_data_size;
+            chunk_data_position = offset;
+            goto success_return;
+        }
+
+        offset += chunk_data_size;
+
+        if (bytes_read >= riff_data_size)
+        { return 0; }
+    }
+
+err_return:
+    return 0;
+
+success_return:
+    return 1;
+}
+
+static int
+read_chunk_data_embedded(embedded_sound *file, void *buffer, DWORD buffer_size, DWORD buffer_offset)
+{
+    file->read_offset = buffer_offset;
+    if (read_embedded(buffer, file, buffer_size) == 0)
+    { return 0; }
+
+    return 1;
+}
+
+extern "C"
+int
+load_sound_embedded(char const * const byte_array, size_t data_size)
+{
+    struct sound *new_sound = new struct sound();
+    new_sound->buffer = new XAUDIO2_BUFFER();
+    int index_return = static_cast<int>(g_sounds.size());
+
+    embedded_sound es = { byte_array, 0, data_size };
+
+    WAVEFORMATEXTENSIBLE wfx = {0};
+
+    DWORD chunk_size = 0;
+    DWORD chunk_position = 0;
+    find_chunk_embedded(&es, fourccRIFF, chunk_size, chunk_position); 
+
+    DWORD file_type = 0;
+    read_chunk_data_embedded(&es, &file_type, chunk_size, chunk_position);
+    if (file_type != fourccWAVE)
+    {
+        return -1;
+    }
+
+    find_chunk_embedded(&es, fourccFMT, chunk_size, chunk_position);
+    read_chunk_data_embedded(&es, &wfx, chunk_size, chunk_position);
+
+    find_chunk_embedded(&es, fourccDATA, chunk_size, chunk_position);
+
+    BYTE *data_buffer = new BYTE[chunk_size];
+
+    read_chunk_data_embedded(&es, data_buffer, chunk_size, chunk_position);
+
+    new_sound->buffer->AudioBytes = chunk_size;
+    new_sound->buffer->pAudioData = data_buffer;
+    new_sound->buffer->Flags = XAUDIO2_END_OF_STREAM;
+
+    if (FAILED(g_audio->CreateSourceVoice(&(new_sound->source_voice), (WAVEFORMATEX*)&wfx)))
+    {
+        return -2;
+    }
+
+    g_sounds.push_back(new_sound);
 
     return index_return;
 }

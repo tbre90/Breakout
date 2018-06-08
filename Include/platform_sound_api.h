@@ -19,4 +19,10 @@ extern "C"
 int
 load_sound(char const * const file);
 
+#ifdef __cplusplus
+extern "C"
+#endif
+int
+load_sound_embedded(char const * const byte_array, size_t data_size);
+
 #endif
