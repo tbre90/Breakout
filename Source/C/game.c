@@ -21,15 +21,7 @@ int game_initialize(void)
         { sound_init = -1; }
     }
 
-    //if (!sound_file[0])
-    //{
-        //if (folder_exists(&sound_file[0], "Assets", PATH_MAX))
-        //{
-            //strncat(sound_file, "/ball-hit.wav", 14);
             g_ball_sound = load_sound_embedded((char const * const)game_asset_sound_ball_hit, sizeof(game_asset_sound_ball_hit) / sizeof(game_asset_sound_ball_hit[0]));
-            //g_ball_sound = load_sound(sound_file);
-        //}
-    //}
 
     if (!g_game.rng_seeded)
     {
