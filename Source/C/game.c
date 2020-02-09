@@ -21,7 +21,7 @@ int game_initialize(void)
         { sound_init = -1; }
     }
 
-            g_ball_sound = load_sound_embedded((char const * const)game_asset_sound_ball_hit, sizeof(game_asset_sound_ball_hit) / sizeof(game_asset_sound_ball_hit[0]));
+    g_ball_sound = load_sound_embedded((char const * const)game_asset_sound_ball_hit, sizeof(game_asset_sound_ball_hit) / sizeof(game_asset_sound_ball_hit[0]));
 
     if (!g_game.rng_seeded)
     {
@@ -206,7 +206,7 @@ create_bricks(int width,
         for (int j = 0; j < columns; ++j)
         {
             int x = (j * width) + padding;
-            int y = (i * height) + padding;
+            int y = (height * 4) + (i * height) + padding;
 
             dest->bricks[(i * columns) + j].rect.x = x;
             dest->bricks[(i * columns) + j].rect.width = width - padding;

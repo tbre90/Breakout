@@ -73,15 +73,6 @@ WinMain(HINSTANCE h_instance,
     UNREFERENCED_PARAMETER(cmd_line);
     UNREFERENCED_PARAMETER(cmd_show);
 
-    /*
-    // want high accuracy when Sleep()-ing
-    if (timeBeginPeriod(1u) == TIMERR_NOCANDO)
-    {
-        MessageBox(NULL, L"Invalid argument to timeBeginPeriod.", L"Error", MB_OK);
-        goto early_exit;
-    }
-    */
-
     char const * const app_name = "Breakout";
 
     WNDCLASSEX wndclass = {0};
