@@ -5,7 +5,11 @@ The old game where you try to murder innocent bricks with a ball.
 
 ## Build
 
-I use Powershell (vbuild.ps1) to build.
+open with visual studio -> compile
+
+or:
+
+use Powershell (vbuild.ps1) to build.
 The vbuild.ps1 script expects Microsoft's C compiler cl to be installed.
 
 You can get a hold of cl by downloading Visual Studio.
@@ -19,10 +23,14 @@ terminal with every environment variable needed to compile.
 If you use another compiler you'll have to check vbuild.ps1 for the
 arguments I pass to cl.
 
+You'll also need an asset for the ball hit sound, or you could just comment that part out.
+(the game expects the asset to be in a c-array)
+
 ## Run
 
 Just run the .exe (found in the \Build directory) from the command line.
+(or run it in visual studio)
 
 Reset the game with CTRL + R.
 
-The game is not yet finished, so there may be bugs, or things not yet implemented.
+There may be bugs, or things not yet implemented.
