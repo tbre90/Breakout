@@ -81,6 +81,7 @@ struct game
 {
     struct window window;
     struct entities entities;
+    struct keyboard keyboard;
     struct text text;
     enum { GAME_OVER = 0, GAME_RUNNING, GAME_WON, BRICK_REMOVED, } state;
     double ms_per_frame;
@@ -97,7 +98,7 @@ create_paddle(int x,
 
 static int
 move_paddle(struct paddle * const paddle,
-            struct platform_data const * const pd);
+            struct keyboard const * const keyboard);
 
 static int
 is_paddle_out_of_bounds(struct paddle * const paddle,

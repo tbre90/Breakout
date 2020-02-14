@@ -3,10 +3,11 @@
 #include <time.h>
 
 #include "..\..\Include\game.h"
-#include "..\..\Include\asset.h"
+#include "..\..\Assets\ball-hit.h"
 
 static struct game g_game;
 static int         sound_init = 0;
+static char        sound_file[PATH_MAX];
 static int         g_ball_sound = 0;
 
 static int rect_intersect(struct rectangle *r1, struct rectangle *r2);
@@ -18,11 +19,9 @@ int game_initialize(void)
         sound_init = init_sound_system();
         if (!sound_init)
         { sound_init = -1; }
-        else
-        {
-            g_ball_sound = load_sound_embedded(game_asset_sound_ball_hit, game_asset_sound_ball_hit_size);
-        }
     }
+
+    g_ball_sound = load_sound_embedded((char const * const)game_asset_sound_ball_hit, sizeof(game_asset_sound_ball_hit) / sizeof(game_asset_sound_ball_hit[0]));
 
     if (!g_game.rng_seeded)
     {
@@ -116,7 +115,7 @@ game_request_ms_per_frame(void)
 }
 
 int
-game_main(struct platform_data *pd)
+game_main(struct keyboard *keyboard)
 {
     if (g_game.state == GAME_OVER)
     {
@@ -150,7 +149,7 @@ game_main(struct platform_data *pd)
             g_game.entities.paddle.rect.width,
             g_game.entities.paddle.rect.height
         );
-        move_paddle(&g_game.entities.paddle, pd);
+        move_paddle(&g_game.entities.paddle, keyboard);
         is_paddle_out_of_bounds(&g_game.entities.paddle, &g_game.window);
 
         // move ball and check for collisions
@@ -246,42 +245,17 @@ create_paddle(int x,
 
 static int
 move_paddle(struct paddle * const paddle,
-            struct platform_data const * const pd)
+            struct keyboard const * const keyboard)
 {
-    if (pd->movement.mouse_enabled)
-    {
-        int diff = pd->movement.mouse_x - (paddle->rect.x + paddle->rect.width / 2);
-        if (diff > 10)
-        {
-            paddle->rect.x += paddle->velocity;
-        }
-        else if (diff < -10)
-        {
-            paddle->rect.x -= paddle->velocity;
-        }
-    }
-    else
-    {
-        if (pd->movement.keyboard_left)
-        {
-            paddle->rect.x -= paddle->velocity;
-        }
-        if (pd->movement.keyboard_right)
-        {
-            paddle->rect.x += paddle->velocity;
-        }
-    }
-
-
-    /*
-    if ((paddle->rect.x + paddle->rect.width /2) < pd->movement.x_axis)
-    {
-    }
-    else if ((paddle->rect.x + paddle->rect.width /2) > pd->movement.x_axis)
-    {
+    if (keyboard->left) 
+    { 
         paddle->rect.x -= paddle->velocity;
     }
-    */
+
+    if (keyboard->right)
+    {
+        paddle->rect.x += paddle->velocity;
+    }
 
     return 1;
 }
@@ -379,9 +353,7 @@ check_for_ball_collision(struct entities * const entities,
         ball->up = 1;
         play_sound(g_ball_sound);
 
-#ifndef TESTING_BUILD
         return GAME_OVER;
-#endif
     }
     
     // handle ball colliding with left side of window

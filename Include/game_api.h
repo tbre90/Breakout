@@ -3,7 +3,7 @@
 
 int game_initialize(void);
 
-int game_main(struct platform_data *pd);
+int game_main(struct keyboard *keyboard);
 
 double game_request_ms_per_frame(void);
 

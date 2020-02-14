@@ -1,5 +1,4 @@
 ﻿#include <windows.h>
-#include <windowsx.h>
 #include <stdlib.h>
 #include <strsafe.h>
 #include <wchar.h>
@@ -21,7 +20,7 @@
 struct platform
 {
     struct backbuffer backbuffer;
-    struct platform_data pd;
+    struct keyboard keyboard;
     struct window
     {
         HDC device_context;
@@ -207,7 +206,8 @@ WinMain(HINSTANCE h_instance,
 
         while (lag >= ms_per_frame)
         {
-            game_main(&g_platform.pd);
+            struct keyboard k = g_platform.keyboard;
+            game_main(&k);
 
             lag -= ms_per_frame;
         }
@@ -238,8 +238,6 @@ WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
 
     short key_state = 0;
 
-    struct platform_data *pd = &g_platform.pd;
-
     switch (message)
     {
         case WM_PAINT: 
@@ -256,17 +254,6 @@ WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
             result = 1;
         } break;
 
-        case WM_MOUSEMOVE:
-        {
-            pd->movement.mouse_x = GET_X_LPARAM(lparam);
-
-        } break;
-
-        case WM_LBUTTONDOWN:
-        {
-            pd->movement.mouse_enabled = !pd->movement.mouse_enabled;
-        } break;
-
         case WM_KEYUP:
         case WM_KEYDOWN:
         {
@@ -275,15 +262,15 @@ WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
                 // A (left)
                 case 0x41:
                 {
-                    if ((1<<31) & lparam) { pd->movement.keyboard_left = 0; }
-                    else                  { pd->movement.keyboard_left = 1; }
+                    if ((1<<31) & lparam) { g_platform.keyboard.left = 0; }
+                    else                  { g_platform.keyboard.left = 1; }
                 } break;
 
                 // D (right)
                 case 0x44:
                 {
-                    if ((1<<31) & lparam) { pd->movement.keyboard_right = 0; }
-                    else                  { pd->movement.keyboard_right = 1; }
+                    if ((1<<31) & lparam) { g_platform.keyboard.right = 0; }
+                    else                  { g_platform.keyboard.right = 1; }
                 } break;
             }
 
@@ -300,7 +287,6 @@ WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
         
         case WM_RESTART_GAME:
         {
-            memset(&pd->movement, 0, sizeof(pd->movement));
             game_initialize();
 
             RedrawWindow(handle_window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);

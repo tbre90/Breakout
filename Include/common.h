@@ -1,17 +1,10 @@
 #ifndef COMMON_H
 
-struct platform_data
+struct keyboard
 {
-    struct movement
-    {
-        int mouse_enabled;
-        int mouse_x;
-
-        int keyboard_left;
-        int keyboard_right;
-    } movement;
+    int left;
+    int right;
 };
-
 
 #define COMMON_H
 #endif

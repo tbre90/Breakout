@@ -40,15 +40,9 @@ read_chunk_data(HANDLE file, void *buffer, DWORD buffer_size, DWORD buffer_offse
 
 struct sound
 {
-
-
-    IXAudio2SourceVoice **source_voices;
-    int* voice_is_playing;
-    //IXAudio2SourceVoice *source_voice1;
-    //IXAudio2SourceVoice *source_voice2;
+    IXAudio2SourceVoice *source_voice;
     XAUDIO2_BUFFER *buffer;
-    int max_voices;
-    int current_voice;
+    int currently_playing;
 };
 
 static IXAudio2 *g_audio = NULL;
@@ -96,11 +90,6 @@ load_sound(char const * const file)
     if (sound_file == INVALID_HANDLE_VALUE) { return -1; }
 
     struct sound *new_sound = new struct sound();
-
-    new_sound->current_voice = 0;
-    new_sound->max_voices = 2;
-    new_sound->voice_is_playing = new int[new_sound->max_voices];
-    new_sound->source_voices = new IXAudio2SourceVoice*[new_sound->max_voices];
     new_sound->buffer = new XAUDIO2_BUFFER();
     int index_return = static_cast<int>(g_sounds.size());
 
@@ -130,12 +119,8 @@ load_sound(char const * const file)
     new_sound->buffer->pAudioData = data_buffer;
     new_sound->buffer->Flags = XAUDIO2_END_OF_STREAM;
 
-    for (int i = 0; i < new_sound->max_voices; i++)
-    {
-        if (FAILED(g_audio->CreateSourceVoice((&new_sound->source_voices[0]), (WAVEFORMATEX*)&wfx)))
-        { return -3; }
-        new_sound->voice_is_playing[i] = 0;
-    }
+    if (FAILED(g_audio->CreateSourceVoice(&(new_sound->source_voice), (WAVEFORMATEX*)&wfx)))
+    { return -3; }
 
     g_sounds.push_back(new_sound);
 
@@ -229,12 +214,6 @@ load_sound_embedded(char const * const byte_array, size_t data_size)
 {
     struct sound *new_sound = new struct sound();
     new_sound->buffer = new XAUDIO2_BUFFER();
-    new_sound->current_voice = 0;
-    new_sound->max_voices = 5; // 5 voices seems to be enough
-    new_sound->voice_is_playing = new int[new_sound->max_voices];
-    new_sound->source_voices = new IXAudio2SourceVoice*[new_sound->max_voices];
-    new_sound->buffer = new XAUDIO2_BUFFER();
-
     int index_return = static_cast<int>(g_sounds.size());
 
     embedded_sound es = { byte_array, 0, data_size };
@@ -265,12 +244,9 @@ load_sound_embedded(char const * const byte_array, size_t data_size)
     new_sound->buffer->pAudioData = data_buffer;
     new_sound->buffer->Flags = XAUDIO2_END_OF_STREAM;
 
-
-    for (int i = 0; i < new_sound->max_voices; i++)
+    if (FAILED(g_audio->CreateSourceVoice(&(new_sound->source_voice), (WAVEFORMATEX*)&wfx)))
     {
-        if (FAILED(g_audio->CreateSourceVoice((&new_sound->source_voices[i]), (WAVEFORMATEX*)&wfx)))
-        { return -3; }
-        new_sound->voice_is_playing[i] = 0;
+        return -2;
     }
 
     g_sounds.push_back(new_sound);
@@ -287,45 +263,22 @@ play_sound(int sound)
 
     struct sound *s = g_sounds[sound];
 
-    if (s->voice_is_playing[s->current_voice])
+    if (s->currently_playing)
     {
-        //s->source_voice->Stop(0, XAUDIO2_COMMIT_NOW);
-        //s->source_voice->FlushSourceBuffers();
-
-        /*
-            microsoft docs :
-            A voice stopped with the XAUDIO2_PLAY_TAILS flag
-            stops consuming source buffers, but continues to process its
-            effects and send audio to its destination voices.
-
-            XAUDIO2_PLAY_TAILS keeps the sound from being choppy when starting/stopping,
-            and having at least 5 voices means there are enough voices for a new sound
-            to immediately be started
-        */
-        s->source_voices[s->current_voice]->Stop(0, XAUDIO2_PLAY_TAILS);
-        s->source_voices[s->current_voice]->FlushSourceBuffers();
-
-        s->voice_is_playing[s->current_voice] = 0;
+        s->source_voice->Stop(0, XAUDIO2_COMMIT_NOW);
+        s->source_voice->FlushSourceBuffers();
+        s->currently_playing = 0;
     }
 
-    s->current_voice++;
-    if (s->current_voice >= s->max_voices) s->current_voice = 0;
-
-#ifdef TESTING_BUILD
-    char buffer[128];
-    snprintf(buffer, 128, "Playing buffer [%d] - %p\n", s->current_voice, s->source_voices[s->current_voice]);
-    OutputDebugStringA(buffer);
-#endif
-
-    HRESULT hr = s->source_voices[s->current_voice]->SubmitSourceBuffer(s->buffer);
+    HRESULT hr = s->source_voice->SubmitSourceBuffer(s->buffer);
     if (FAILED(hr))
     { return; }
 
-    hr = s->source_voices[s->current_voice]->Start(0);
+    hr = s->source_voice->Start(0);
     if (FAILED(hr))
     { return; }
     else
-    { s->voice_is_playing[s->current_voice] = 1; }
+    { s->currently_playing = 1; }
 }
 
 static HRESULT
