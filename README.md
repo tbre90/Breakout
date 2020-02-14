@@ -5,6 +5,9 @@ The old game where you try to murder innocent bricks with a ball.
 
 ## Build
 
+! You need to remove the "TESTING\_BUILD" define, or the
+ball will just bounce when it hits the bottom screen.
+
 open with visual studio -> compile
 
 or:
