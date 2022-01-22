@@ -1,15 +1,32 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "..\..\Include\game.h"
+#include "..\..\Include\game_api.h"
 #include "..\..\Include\asset.h"
 
 static struct game g_game;
 static int         sound_init = 0;
 static int         g_ball_sound = 0;
+static int         g_bkcolor = 0xFFFFFF;
 
+static void get_entity_defaults(enum entity_type es, struct entity_default *ed);
 static int rect_intersect(struct rectangle *r1, struct rectangle *r2);
+
+enum entity_type { entity_ball = 0, entity_paddle, entity_brick, entity_brick_container };
+
+struct entity_default
+{
+    union
+    {
+        struct circle ball;
+        struct paddle paddle;
+        struct brick brick;
+        struct bricks bricks;
+    };
+};
 
 int game_initialize(void)
 {
@@ -40,58 +57,53 @@ int game_initialize(void)
     g_game.window.width = window_width;
     g_game.window.height = window_height;
 
-    int paddle_width = window_width / 20;
-    int paddle_height = window_height / 40;
-    int paddle_acceleration = window_width / (80 * 2);
+    struct entity_default ed = {0};
 
+    get_entity_defaults(entity_paddle, &ed);
     g_game.entities.paddle =
         create_paddle(
-            (window_width / 2) - (paddle_width / 2),
-            window_height - (paddle_height * 2),
-            paddle_width,
-            paddle_height,
-            paddle_acceleration,
-            0x000000
+            ed.paddle.rect.x,
+            ed.paddle.rect.y,
+            ed.paddle.rect.width,
+            ed.paddle.rect.height,
+            ed.paddle.velocity,
+            ed.paddle.rect.color
         );
 
-    int ball_radius = paddle_width / 3;
-    int ball_acceleration = window_height / (80 * 2);
-
+    get_entity_defaults(entity_ball, &ed);
     g_game.entities.ball =
         create_unsexy_non_antialiased_ball(
-            (window_width / 2) - (ball_radius / 2),
-            (window_height / 2) - (ball_radius / 2),
-            ball_radius,
-            ball_radius,
-            ball_acceleration,
-            0x000000
+            ed.ball.circle.x,
+            ed.ball.circle.y,
+            ed.ball.circle.width,
+            ed.ball.circle.height,
+            ed.ball.velocity,
+            ed.ball.circle.color
         );
+    
+    get_entity_defaults(entity_brick_container, &ed);
 
-    int brick_height = window_height / 40;
-    int brick_width = window_width / 20;
-
-    int num_brick_columns = window_width / brick_width;
-    int num_brick_rows = 8;
-
-    int padding = 2;
+    struct bricks bricks = ed.bricks;
 
     if (!g_game.entities.bricks.bricks)
     {
-        g_game.entities.bricks.bricks = calloc(num_brick_rows * num_brick_columns, sizeof(struct brick));
+        g_game.entities.bricks.bricks = calloc((size_t)bricks.row * (size_t)bricks.column, sizeof(struct brick));
         if (!g_game.entities.bricks.bricks)
         { return 0; }
     }
     else
     {
-        memset(g_game.entities.bricks.bricks, 0, sizeof(struct brick) * num_brick_columns * num_brick_rows);
+        memset(g_game.entities.bricks.bricks, 0, sizeof(struct brick) * bricks.row * bricks.column);
     }
 
+    get_entity_defaults(entity_brick, &ed);
+
     create_bricks(
-        brick_width,
-        brick_height,
-        num_brick_rows,
-        num_brick_columns,
-        padding,
+        ed.brick.rect.width,
+        ed.brick.rect.height,
+        bricks.row,
+        bricks.column,
+        ed.brick.padding,
         &g_game.entities.bricks
     );
 
@@ -103,10 +115,83 @@ int game_initialize(void)
     g_game.ms_per_frame = FPS_144;
     g_game.state = GAME_RUNNING;
 
-    platform_set_background(0xFFFFFF);
+    platform_set_background(g_bkcolor);
     platform_paint_background();
 
     return 1;
+}
+
+static void
+get_entity_defaults(enum entity_type es, struct entity_default *ed)
+{
+    const int paddle_width          = g_game.window.width / 20;
+    const int paddle_height         = g_game.window.height / 40;
+    const int paddle_acceleration   = g_game.window.width / (80 * 2);
+
+    const int ball_radius           = paddle_width / 3;
+    const int ball_acceleration     = g_game.window.height / (80 * 2);
+    const int ball_color            = 0x000000;
+
+    const int brick_padding         = 2;
+    const int brick_height          = g_game.window.height / 40;
+    const int brick_width           = g_game.window.width / 20;
+    const int bricks_rows           = 8;
+    const int bricks_columns        = g_game.window.width / brick_width;
+
+    const int window_width          = g_game.window.width;
+    const int window_height         = g_game.window.height;
+    const int window_x_mid          = g_game.window.width / 2;
+    const int window_y_mid          = g_game.window.height / 2;
+
+    switch (es)
+    {
+        case entity_ball:
+        {
+            ed->ball.circle.x      = window_x_mid - (ball_radius / 2);
+            ed->ball.circle.y      = window_y_mid - (ball_radius / 2);
+            ed->ball.circle.height = ball_radius;
+            ed->ball.circle.width  = ball_radius;
+            ed->ball.velocity      = ball_acceleration;
+            ed->ball.circle.color  = ball_color;
+        } break;
+
+        case entity_paddle:
+        {
+
+            ed->paddle.rect.x       = window_x_mid - (paddle_width / 2);
+            ed->paddle.rect.y       = window_height - (paddle_height * 2);
+            ed->paddle.rect.width   = paddle_width;
+            ed->paddle.rect.height  = paddle_height;
+            ed->paddle.rect.color   = 0x000000;
+            ed->paddle.velocity     = paddle_acceleration;
+        } break;
+
+        case entity_brick:
+        {
+            ed->brick.alive         = 1;
+            ed->brick.padding       = brick_padding;
+            ed->brick.rect.color    = 0x000000;
+            ed->brick.rect.x        = 0;
+            ed->brick.rect.y        = 0;
+            ed->brick.rect.width    = brick_width;
+            ed->brick.rect.height   = brick_height;
+        } break;
+
+        case entity_brick_container:
+        {
+            ed->bricks.row          = bricks_rows;
+            ed->bricks.column       = bricks_columns;
+            ed->bricks.bricks       = NULL;
+            ed->bricks.num_alive    = 0;
+        } break;
+    }
+}
+
+void
+game_window_resize(void)
+{
+    platform_set_background(g_bkcolor);
+    platform_paint_background();
 }
 
 double
@@ -250,15 +335,31 @@ move_paddle(struct paddle * const paddle,
 {
     if (pd->movement.mouse_enabled)
     {
-        int diff = pd->movement.mouse_x - (paddle->rect.x + paddle->rect.width / 2);
-        if (diff > (10 + paddle->rect.width))
+        int mouse_position = pd->movement.mouse_x;
+        int mid_of_paddle = paddle->rect.x + (paddle->rect.width / 2);
+
+        int deadzone_start = mouse_position - paddle->velocity;
+        int deadzone_end   = mouse_position + paddle->velocity;
+
+        if (mid_of_paddle < deadzone_start)
         {
             paddle->rect.x += paddle->velocity;
         }
-        else if (diff < (-10 + paddle->rect.width))
+        else if (mid_of_paddle > deadzone_end)
         {
             paddle->rect.x -= paddle->velocity;
         }
+
+#ifdef DEBUG_CURSOR_MOVEMENT
+        char buffer[128];
+
+        snprintf(buffer, 128, "Mouse position: %d\n", mouse_position);
+        OutputDebugStringA(buffer);
+
+        snprintf(buffer, 128, "Paddle middle: %d\n", mid_of_paddle);
+        OutputDebugStringA(buffer);
+#endif
+
     }
     else
     {
@@ -271,17 +372,6 @@ move_paddle(struct paddle * const paddle,
             paddle->rect.x += paddle->velocity;
         }
     }
-
-
-    /*
-    if ((paddle->rect.x + paddle->rect.width /2) < pd->movement.x_axis)
-    {
-    }
-    else if ((paddle->rect.x + paddle->rect.width /2) > pd->movement.x_axis)
-    {
-        paddle->rect.x -= paddle->velocity;
-    }
-    */
 
     return 1;
 }

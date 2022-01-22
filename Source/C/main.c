@@ -43,6 +43,25 @@ get_backbuffer(void)
 }
 
 static void
+set_backbuffer(struct backbuffer buffer)
+{
+    g_platform.backbuffer = buffer;
+}
+
+static int
+recalculate_backbuffer(HWND window_handle)
+{
+    struct backbuffer new_backbuffer = initialize_backbuffer(window_handle);
+
+    // don't want to automatically paint background
+    SetBkMode(new_backbuffer.device_context, TRANSPARENT);
+
+    set_backbuffer(new_backbuffer);
+
+    return new_backbuffer.error;
+}
+
+static void
 render(HDC device_context,
        int client_width,
        int client_height,
@@ -108,15 +127,12 @@ WinMain(HINSTANCE h_instance,
         goto early_exit;
     }
 
-    g_platform.backbuffer = initialize_backbuffer(hwnd);
-    if (g_platform.backbuffer.error)
+    int backbuffer_error = recalculate_backbuffer(hwnd);
+    if (backbuffer_error)
     {
         MessageBox(NULL, "Failed to initialize backbuffer.", "Error", MB_OK);
         goto early_exit;
     }
-
-    // don't want to automatically paint background
-    SetBkMode(g_platform.backbuffer.device_context, TRANSPARENT);
 
     g_platform.font = 
             CreateFont(
@@ -310,6 +326,10 @@ WndProc(HWND handle_window, UINT message, WPARAM wparam, LPARAM lparam)
         {
             g_platform.window.width = LOWORD(lparam);
             g_platform.window.height = HIWORD(lparam);
+
+            recalculate_backbuffer(handle_window);
+            game_window_resize();
+            //RedrawWindow(handle_window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
         } break;
 
         case WM_DESTROY:

@@ -102,7 +102,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>TESTING_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TESTING_BUILD;DEBUG_CURSOR_MOVEMENT</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -110,7 +110,8 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>TESTING_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

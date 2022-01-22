@@ -42,6 +42,7 @@ struct brick
 {
     struct rectangle rect;
     int alive;
+    int padding;
 };
 
 struct bricks

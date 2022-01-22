@@ -311,7 +311,7 @@ play_sound(int sound)
     s->current_voice++;
     if (s->current_voice >= s->max_voices) s->current_voice = 0;
 
-#ifdef TESTING_BUILD
+#ifdef DEBUG_SOUND
     char buffer[128];
     snprintf(buffer, 128, "Playing buffer [%d] - %p\n", s->current_voice, s->source_voices[s->current_voice]);
     OutputDebugStringA(buffer);
